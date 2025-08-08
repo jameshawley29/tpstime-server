@@ -33,6 +33,36 @@ app.get("/schedule/:userId", (req, res) => {
     );
 });
 
+// PUT /schedule/:userId/:period — update a specific class period
+app.put("/schedule/:userId/:period", (req, res) => {
+    const { userId, period } = req.params;
+    const { subject } = req.body;
+    
+    db.run(
+        `INSERT OR REPLACE INTO schedules (user_id, period, subject)
+         VALUES (?, ?, ?)`,
+        [userId, period, subject],
+        function (err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ id: this.lastID, userId, period, subject });
+        }
+    );
+});
+
+// DELETE /schedule/:userId/:period — delete a specific class period
+app.delete("/schedule/:userId/:period", (req, res) => {
+    const { userId, period } = req.params;
+    
+    db.run(
+        `DELETE FROM schedules WHERE user_id = ? AND period = ?`,
+        [userId, period],
+        function (err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ deleted: this.changes, userId, period });
+        }
+    );
+});
+
 
 const server = app.listen(3001, () => {
     console.log("Server running on http://localhost:3001");
